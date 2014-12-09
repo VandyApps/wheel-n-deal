@@ -38,38 +38,37 @@ class GameController extends Controller {
 
   get("/test") { request =>
     /* Returns a web page that tests the HTTP API of this server. */
-    render.plain("Hello").toFuture
-  
+    render.static("test.html").toFuture
   }
 
   get("/game") { request =>
     /* Returns an array of all game ids active. */
-  
+    render.plain("okay").toFuture
   }
   
   post("/game") { request =>
     /* Creates a new game session and returns the session id. Session id
      * is a randomly generated string of unspecified length. 
      */
-  
+    render.plain("okay").toFuture
   }
   
   get("/game/:gameid/player") { request =>
     /* Returns an array of all player ids active in this game session. */
-  
+    render.plain("okay").toFuture
   }
   
   post("/game/:gameid/player") { request =>
     /* Creates a new player session and returns the player id. Player id
      * is a randomly generated string of unspecified length. 
      */
-    
+    render.plain("okay").toFuture
   }
   
   delete("/game/:gameid/player/:playerid") { request =>
     /* Removes the player with the given id from this game session.
      */
-    
+    render.plain("okay").toFuture
   }
   
   get("/game/:gameid/player/:playerid/events") { request =>
@@ -82,7 +81,7 @@ class GameController extends Controller {
      *         [0-9]+ | Returns the specified number of events
      * 
      */
-  
+    render.plain("okay").toFuture
   }
   
   post("/game/:gameid/player/:playerid/events") { request =>
@@ -93,7 +92,7 @@ class GameController extends Controller {
      * A UUID will be assigned, which identifies all event by its content and
      * time of receipt.
      */
-    
+    render.plain("okay").toFuture
   }
   
 }
