@@ -58,7 +58,7 @@ object GameSystem {
     }
   }
   
-  object Game {
+  private object Game {
     
     case class Players(ids: Seq[String])
     case object Players
@@ -77,7 +77,7 @@ object GameSystem {
   
   
   
-  private class Player extends Actor {
+  private final class Player extends Actor {
     import Player._
     
     private var events = Vector.empty[String]
@@ -100,7 +100,7 @@ object GameSystem {
             events.take(n)
             
         }
-        sender ! Game.Events(s"[${requested.mkString(",")}]")
+        sender ! Game.Events(s"""[${requested.mkString(",")}]""")
     }
   }
   
@@ -150,7 +150,8 @@ object GameSystem {
     def getEvents(game: String, player: String, opts: EventOption) = {
       gamesRegister.get(game) match {
         case Some(g) => 
-          (g ? Game.FetchEvent).mapTo[Game.Events].map(_.events)
+          (g ? Game.FetchEvent(player, opts))
+            .mapTo[Game.Events].map(_.events)
         case None => 
           Future.failed(noGame)
       }

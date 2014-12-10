@@ -82,10 +82,10 @@ final class GameController(val gameSystem: GameSystem)
     /* Returns game events.
      * 
      * Options:
-     *     mode ->
-     *         all    | Returns all events (default)
-     *         latest | Returns only the events since the last request
-     *         [0-9]+ | Returns the specified number of events
+     *   mode ->
+     *     all    | Returns all events (default)
+     *     latest | Returns only the events since the last request
+     *     [0-9]+ | Returns the specified number of events
      * 
      */
     val gameid = request.routeParams("gameid")

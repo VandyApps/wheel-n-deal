@@ -93,7 +93,7 @@ function fetchEvents(game, player, mode) {
       console.log( "Error: " + errorThrown );
       console.log( "Status: " + status );
     }
-  });  
+  });
 }
 
 function postEvent(game, event) {
