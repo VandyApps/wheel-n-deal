@@ -34,7 +34,7 @@ function createGame() {
 
 function listPlayers(game) {
   $.ajax({
-    url: "game/" + game,
+    url: "game/" + game + "/player",
     type: 'get',
     contentType: 'application/json',
     dataType: 'json',
@@ -50,7 +50,7 @@ function listPlayers(game) {
 
 function registerPlayer(game) {
   $.ajax({
-    url: "game/" + game,
+    url: "game/" + game + "/player",
     type: 'post',
     contentType: 'application/json',
     dataType: 'text',
@@ -82,7 +82,7 @@ function removePlayer(game, player) {
 
 function fetchEvents(game, player, mode) {
   $.ajax({
-    url: "game/" + game + "/player/" + player + "?mode" + mode,
+    url: "game/" + game + "/player/" + player + "/events?mode=all",
     type: 'get',
     contentType: 'application/json',
     dataType: 'json',
@@ -96,9 +96,9 @@ function fetchEvents(game, player, mode) {
   });  
 }
 
-function postEvent(game, player, event) {
+function postEvent(game, event) {
   $.ajax({
-    url: "game/" + game + "/player/" + player,
+    url: "game/" + game + "/events",
     type: 'post',
     data: JSON.stringify(event),
     contentType: 'application/json',

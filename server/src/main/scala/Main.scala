@@ -23,7 +23,7 @@ object Main extends App {
     println(s"Starting $env server on port $port")
 
     val server = new FinatraServer
-    server.register(new GameController)
+    server.register(new GameController(GameSystem.create))
     server.start()
   }
 
@@ -34,7 +34,10 @@ object Main extends App {
 
 }
 
-class GameController extends Controller {
+final class GameController(val gameSystem: GameSystem) 
+    extends Controller with AkkaTwitterBridge {
+
+  import concurrent.ExecutionContext.Implicits.global
 
   get("/test") { request =>
     /* Returns a web page that tests the HTTP API of this server. */
@@ -43,32 +46,36 @@ class GameController extends Controller {
 
   get("/game") { request =>
     /* Returns an array of all game ids active. */
-    render.plain("okay").toFuture
+    gameSystem.games.map( render.json )
   }
   
   post("/game") { request =>
     /* Creates a new game session and returns the session id. Session id
      * is a randomly generated string of unspecified length. 
      */
-    render.plain("okay").toFuture
+    gameSystem.createGame().map( render.plain )
   }
   
   get("/game/:gameid/player") { request =>
     /* Returns an array of all player ids active in this game session. */
-    render.plain("okay").toFuture
+    val gameid = request.routeParams("gameid")
+    gameSystem.players(gameid).map( render.json )
   }
   
   post("/game/:gameid/player") { request =>
     /* Creates a new player session and returns the player id. Player id
      * is a randomly generated string of unspecified length. 
      */
-    render.plain("okay").toFuture
+    val gameid = request.routeParams("gameid")
+    gameSystem.addPlayer(gameid).map( render.plain )
   }
   
   delete("/game/:gameid/player/:playerid") { request =>
-    /* Removes the player with the given id from this game session.
-     */
-    render.plain("okay").toFuture
+    /* Removes the player with the given id from this game session. */
+    val gameid = request.routeParams("gameid")
+    val playerid = request.routeParams("playerid")
+    gameSystem.removePlayer(gameid, playerid)
+    render.plain("Okay").toFuture
   }
   
   get("/game/:gameid/player/:playerid/events") { request =>
@@ -81,10 +88,12 @@ class GameController extends Controller {
      *         [0-9]+ | Returns the specified number of events
      * 
      */
-    render.plain("okay").toFuture
+    val gameid = request.routeParams("gameid")
+    val playerid = request.routeParams("playerid")
+    gameSystem.getEvents(gameid, playerid, All).map( render.json )
   }
   
-  post("/game/:gameid/player/:playerid/events") { request =>
+  post("/game/:gameid/events") { request =>
     /* Registers a game event. The event should be passed in in the body
      * of the request. The event should be a valid JSON object.
      * 
@@ -92,7 +101,27 @@ class GameController extends Controller {
      * A UUID will be assigned, which identifies all event by its content and
      * time of receipt.
      */
-    render.plain("okay").toFuture
+    val gameid = request.routeParams("gameid")
+    gameSystem.postEvent(gameid, request.contentString)
+    render.plain("Okay").toFuture
   }
   
+}
+
+trait AkkaTwitterBridge {
+  type SFuture[A] = scala.concurrent.Future[A]
+  type TFuture[A] = com.twitter.util.Future[A]
+  
+  /* Transforms the Future returned by Akka to Twitter's Future. */
+  implicit def futurePipe[A](sfuture: SFuture[A]): TFuture[A] = {
+    import concurrent.ExecutionContext.Implicits.global
+    import util.{Success, Failure}
+    
+    val p = com.twitter.util.Promise[A]()
+    sfuture.onComplete {
+      case Success(re) => p.setValue(re)
+      case Failure(ex) => p.raise(ex)
+    }
+    p
+  }  
 }

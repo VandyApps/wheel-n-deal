@@ -14,7 +14,10 @@ scalacOptions := Seq(
 
 resolvers += "Twitter" at "http://maven.twttr.com"
 
+resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+
 libraryDependencies ++= Seq(
   "com.twitter" %% "finatra" % "1.5.2",
-  "com.google.code.gson" %  "gson" % "2.2.4"
+  "com.google.code.gson" %  "gson" % "2.2.4",
+  "com.typesafe.akka" %% "akka-actor" % "2.3.7"
 )
