@@ -169,4 +169,21 @@ case object All extends EventOption
 case object SinceLast extends EventOption
 case class Fixed(count: Int) extends EventOption
 
+object EventOption {
+  val numberMatcher = "[0-9]+".r
+  
+  def unapply(s: String): Option[EventOption] = s match {
+    case "all"            => Some(All)
+    case "latest"         => Some(SinceLast)
+    case numberMatcher(n) => Some(Fixed(n.toInt))
+    case _                => None
+  }
+}
 
+object GameId {
+  def unapply(map: Map[String, String]): Option[String] = map.get("gameid")
+}
+
+object PlayerId {
+  def unapply(map: Map[String, String]): Option[String] = map.get("playerid")
+}

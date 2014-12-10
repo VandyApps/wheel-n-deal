@@ -58,7 +58,7 @@ final class GameController(val gameSystem: GameSystem)
   
   get("/game/:gameid/player") { request =>
     /* Returns an array of all player ids active in this game session. */
-    val gameid = request.routeParams("gameid")
+    val GameId(gameid) = request.routeParams
     gameSystem.players(gameid).map( render.json )
   }
   
@@ -66,14 +66,14 @@ final class GameController(val gameSystem: GameSystem)
     /* Creates a new player session and returns the player id. Player id
      * is a randomly generated string of unspecified length. 
      */
-    val gameid = request.routeParams("gameid")
+    val GameId(gameid) = request.routeParams
     gameSystem.addPlayer(gameid).map( render.plain )
   }
   
   delete("/game/:gameid/player/:playerid") { request =>
     /* Removes the player with the given id from this game session. */
-    val gameid = request.routeParams("gameid")
-    val playerid = request.routeParams("playerid")
+    val GameId(gameid) = request.routeParams
+    val PlayerId(playerid) = request.routeParams
     gameSystem.removePlayer(gameid, playerid)
     render.plain("Okay").toFuture
   }
@@ -88,9 +88,10 @@ final class GameController(val gameSystem: GameSystem)
      *     [0-9]+ | Returns the specified number of events
      * 
      */
-    val gameid = request.routeParams("gameid")
-    val playerid = request.routeParams("playerid")
-    gameSystem.getEvents(gameid, playerid, All).map( render.json )
+    val GameId(gameid) = request.routeParams
+    val PlayerId(playerid) = request.routeParams
+    val EventOption(opt) = request.params.getOrElse("mode", "all")
+    gameSystem.getEvents(gameid, playerid, All).map( renderJson )
   }
   
   post("/game/:gameid/events") { request =>
@@ -101,10 +102,15 @@ final class GameController(val gameSystem: GameSystem)
      * A UUID will be assigned, which identifies all event by its content and
      * time of receipt.
      */
-    val gameid = request.routeParams("gameid")
+    val GameId(gameid) = request.routeParams
     gameSystem.postEvent(gameid, request.contentString)
     render.plain("Okay").toFuture
   }
+  
+  def renderJson(s: String) =
+    render.status(200)
+      .header("Content-Type", "application/json")
+      .body(s)
   
 }
 
