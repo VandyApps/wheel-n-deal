@@ -15,9 +15,9 @@ trait GameSystem {
   
   def addPlayer(game: String): Future[String]
   
-  def removePlayer(game: String, player: String): Unit
+  def removePlayer(game: String, player: String): Future[Unit]
   
-  def postEvent(game: String, event: String): Unit
+  def postEvent(game: String, event: String): Future[Unit]
   
   def getEvents(game: String, player: String, opts: EventOption): Future[String]
   
@@ -137,14 +137,26 @@ object GameSystem {
       }
     }
     
-    def removePlayer(game: String, player: String): Unit = {
-      gamesRegister.get(game) foreach { g => g ! Game.Remove(player) }
+    def removePlayer(game: String, player: String) = {
+      gamesRegister.get(game) match { 
+        case Some(g) => 
+          g ! Game.Remove(player) 
+          (g ? Game.Players).mapTo[Game.Players] map { ps =>
+            if (ps.ids.isEmpty) {
+              g ! PoisonPill
+              gamesRegister -= game
+              ()
+            }
+          }
+        case None => Future.successful(())
+      }
     }
     
-    def postEvent(game: String, event: String): Unit = {
+    def postEvent(game: String, event: String) = {
       gamesRegister.get(game) foreach { g =>
         g ! Game.PostEvent(event)
       }
+      Future.successful(())
     }
     
     def getEvents(game: String, player: String, opts: EventOption) = {

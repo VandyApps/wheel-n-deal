@@ -19,5 +19,6 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 libraryDependencies ++= Seq(
   "com.twitter" %% "finatra" % "1.5.2",
   "com.google.code.gson" %  "gson" % "2.2.4",
-  "com.typesafe.akka" %% "akka-actor" % "2.3.7"
+  "com.typesafe.akka" %% "akka-actor" % "2.3.7",
+  "org.scalatest" % "scalatest_2.10" % "2.2.1" % "test"
 )
