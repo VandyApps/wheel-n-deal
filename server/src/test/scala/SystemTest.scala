@@ -2,18 +2,28 @@
 import org.scalatest.concurrent.ScalaFutures._
 import concurrent.ExecutionContext.Implicits.global
 
-class SystemTest extends org.scalatest.FunSuite {
+class SystemTest 
+    extends org.scalatest.FunSuite 
+    with org.scalatest.BeforeAndAfter {
+
+  var system: GameSystem = _
+
+  before {
+    system = GameSystem.create
+  }
+  
+  after {
+    system.shutdown()
+    system = null
+  }
 
   test("The game system should have no game sessions initially.") {
-    val system = GameSystem.create
-    
     whenReady(system.games) { gs =>
       assert(gs.isEmpty, "The list of game Ids returned should be empty")
     }
   }
   
   test("The game system should have one game session after a game is created") {
-    val system = GameSystem.create
     val gameIdFut = system.createGame
     val gamesFut = system.games
     
@@ -31,9 +41,19 @@ class SystemTest extends org.scalatest.FunSuite {
   
 }
 
-class GameTest extends org.scalatest.FunSuite {
+class GameTest extends org.scalatest.FunSuite
+    with org.scalatest.BeforeAndAfter {
   
-  val system = GameSystem.create
+  var system: GameSystem = _
+  
+  before {
+    system = GameSystem.create
+  }
+  
+  after {
+    system.shutdown()
+    system = null
+  }
   
   test("A game session should have zero players initially") {
     val playersFut = for {

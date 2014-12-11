@@ -16,8 +16,8 @@ class EventOptionTest extends org.scalatest.FunSuite {
     assert(opt == Fixed(1234))
   }
   
-  test("The extractor should return None for invalid option") {
-    val opt = EventOption.unapply("hello")
-    assert(opt == None)
+  test("The extractor should return All for invalid option") {
+    val EventOption(opt) = "hello"
+    assert(opt == All)
   }
 }

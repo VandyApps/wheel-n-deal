@@ -21,6 +21,8 @@ trait GameSystem {
   
   def getEvents(game: String, player: String, opts: EventOption): Future[String]
   
+  def shutdown(): Unit
+  
 }
 
 object GameSystem {
@@ -169,7 +171,12 @@ object GameSystem {
       }
     }
     
-    def noGame = 
+    def shutdown(): Unit = {
+      gamesRegister = null
+      system.shutdown()
+    }
+    
+    private def noGame = 
       new IllegalArgumentException("No game with that session id exist")
     
   }
@@ -188,7 +195,7 @@ object EventOption {
     case "all"             => Some(All)
     case "latest"          => Some(SinceLast)
     case numberMatcher(_*) => Some(Fixed(s.toInt))
-    case _                 => None
+    case _                 => Some(All)
   }
 }
 
