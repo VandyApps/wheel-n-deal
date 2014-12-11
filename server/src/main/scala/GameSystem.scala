@@ -185,10 +185,10 @@ object EventOption {
   val numberMatcher = "[0-9]+".r
   
   def unapply(s: String): Option[EventOption] = s match {
-    case "all"            => Some(All)
-    case "latest"         => Some(SinceLast)
-    case numberMatcher(n) => Some(Fixed(n.toInt))
-    case _                => None
+    case "all"             => Some(All)
+    case "latest"          => Some(SinceLast)
+    case numberMatcher(_*) => Some(Fixed(s.toInt))
+    case _                 => None
   }
 }
 
