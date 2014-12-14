@@ -115,3 +115,97 @@ class GameTest extends org.scalatest.FunSuite
   }
   
 }
+
+class EventTest extends org.scalatest.FunSuite
+    with org.scalatest.BeforeAndAfter {
+  
+  import scala.concurrent.Await
+  import scala.concurrent.duration.Duration
+  
+  var system: GameSystem = _
+  var gameSession: String = ""
+  
+  val sampleEvents = Seq(
+    "{event: 5}",
+    "{event: 6}",
+    "{event: 7}",
+    "{event: 8}",
+    "{event: 9}",
+    "{event: 10}")
+  
+  before {
+    system = GameSystem.create
+    val f = system.createGame()
+    gameSession = Await.result(f, Duration.Inf)
+  }
+  
+  after {
+    system.shutdown()
+    system = null
+  }
+  
+  test("A posted event should be returned in an array in the get events call") {
+    val sampleEvent = """{name: "Banana Event", message: "Hello toffy"}"""
+    val eventsFut = for {
+      p1     <- system.addPlayer(gameSession)
+      _      <- system.postEvent(gameSession, sampleEvent)
+      events <- system.getEvents(gameSession, p1, All)
+    } yield events
+    
+    whenReady(eventsFut) { events =>
+      assert(events === s"[$sampleEvent]")
+    }
+  }
+  
+  test("Fetching events with the SinceLast flag should only " ++
+      "return the events since the last call") {
+    
+    val eventsFut = for {
+      p1     <- system.addPlayer(gameSession)
+      _      <- system.addPlayer(gameSession)
+      _      <- system.postEvent(gameSession, sampleEvents(0))
+      _      <- system.postEvent(gameSession, sampleEvents(1))
+      _      <- system.postEvent(gameSession, sampleEvents(2))
+      _      <- system.getEvents(gameSession, p1, SinceLast)
+      _      <- system.postEvent(gameSession, sampleEvents(3))
+      _      <- system.postEvent(gameSession, sampleEvents(4))
+      _      <- system.postEvent(gameSession, sampleEvents(5))
+      events <- system.getEvents(gameSession, p1, SinceLast)
+    } yield events
+    
+    whenReady(eventsFut) { events =>
+      assert(events.containsSlice(sampleEvents(3)))
+      assert(events.containsSlice(sampleEvents(4)))
+      assert(events.containsSlice(sampleEvents(5)))
+      
+      assert(!events.containsSlice(sampleEvents(0)))
+      assert(!events.containsSlice(sampleEvents(1)))
+      assert(!events.containsSlice(sampleEvents(2)))
+    }
+  }
+  
+  test("Fetching events with the Fixed flag should only " ++
+      "return the specified number of events") {
+    
+    val eventsFut = for {
+      p1     <- system.addPlayer(gameSession)
+      _      <- system.addPlayer(gameSession)
+      _      <- system.postEvent(gameSession, sampleEvents(0))
+      _      <- system.postEvent(gameSession, sampleEvents(1))
+      _      <- system.postEvent(gameSession, sampleEvents(2))
+      _      <- system.postEvent(gameSession, sampleEvents(3))
+      _      <- system.postEvent(gameSession, sampleEvents(4))
+      events <- system.getEvents(gameSession, p1, Fixed(3))
+    } yield events
+    
+    whenReady(eventsFut) { events =>
+      assert(events.containsSlice(sampleEvents(2)))
+      assert(events.containsSlice(sampleEvents(3)))
+      assert(events.containsSlice(sampleEvents(4)))
+      
+      assert(!events.containsSlice(sampleEvents(0)))
+      assert(!events.containsSlice(sampleEvents(1)))
+    }
+  }  
+  
+}
